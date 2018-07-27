@@ -1,0 +1,4 @@
+multiplsvc:
+    image: atuldaemon/multiplsvc
+    ports:
+        - 8080:8080
