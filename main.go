@@ -1,15 +1,17 @@
 package main
 
 import (
+	"flag"
 	"fmt"
 	"net/http"
-	"flag"
 	"os"
 
 	"os/signal"
 	"syscall"
-	"github.com/go-kit/kit/log"
+
+	"github.com/atuldaemon/rct/booking"
 	"github.com/atuldaemon/rct/parking"
+	"github.com/go-kit/kit/log"
 	kitprometheus "github.com/go-kit/kit/metrics/prometheus"
 	stdprometheus "github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
@@ -30,13 +32,13 @@ func main() {
 
 	fieldKeys := []string{"method"}
 
-	parkingstore, err := parking.NewInMemParkingStore()
+	parkingStore, err := parking.NewInMemParkingStore()
 	if err != nil {
 		panic(err)
 	}
 	var p parking.Service
 	{
-		p = parking.NewService(parkingstore)
+		p = parking.NewService(parkingStore)
 		p = parking.LoggingMiddleware(logger)(p)
 		p = parking.NewInstrumentingService(
 			kitprometheus.NewCounterFrom(stdprometheus.CounterOpts{
@@ -54,11 +56,38 @@ func main() {
 			p)
 	}
 
+	bookingStore, err := booking.NewInMemBookingStore()
+	if err != nil {
+		panic(err)
+	}
+	var b booking.Service
+	{
+		b = booking.NewService(bookingStore, p)
+		b = booking.LoggingMiddleware(logger)(b)
+		b = booking.NewInstrumentingService(
+			kitprometheus.NewCounterFrom(stdprometheus.CounterOpts{
+				Namespace: "api",
+				Subsystem: "booking_service",
+				Name:      "request_count",
+				Help:      "Number of requests received.",
+			}, fieldKeys),
+			kitprometheus.NewSummaryFrom(stdprometheus.SummaryOpts{
+				Namespace: "api",
+				Subsystem: "booking_service",
+				Name:      "request_latency_microseconds",
+				Help:      "Total duration of requests in microseconds.",
+			}, fieldKeys),
+			b)
+	}
+
 	mux := http.NewServeMux()
 
 	mux.Handle("/parking/v1/", parking.MakeHTTPHandler(p, log.With(logger, "component", "HTTP")))
+	mux.Handle("/booking/v1/", booking.MakeHTTPHandler(b, log.With(logger, "component", "HTTP")))
+
 	http.Handle("/", accessControl(mux))
 	http.Handle("/metrics", promhttp.Handler())
+
 	errs := make(chan error, 2)
 
 	go func() {
@@ -74,7 +103,6 @@ func main() {
 	logger.Log("terminated", <-errs)
 
 }
-
 
 func accessControl(h http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
