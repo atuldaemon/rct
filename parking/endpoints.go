@@ -26,36 +26,6 @@ func MakeServerEndpoints(s Service) Endpoints {
 	}
 }
 
-func (e Endpoints) GetAllParking(ctx context.Context) ([]Spot, error) {
-	request := getAllParkingRequest{}
-	response, err := e.GetAllParkingEndpoint(ctx, request)
-	if err != nil {
-		return nil, err
-	}
-	resp := response.(getAllParkingResponse)
-	return resp.Spots, resp.Err
-}
-
-func (e Endpoints) GetFreeParking(ctx context.Context) ([]Spot, error) {
-	request := getFreeParkingRequest{}
-	response, err := e.GetFreeParkingEndpoint(ctx, request)
-	if err != nil {
-		return nil, err
-	}
-	resp := response.(getFreeParkingResponse)
-	return resp.Spots, resp.Err
-}
-
-func (e Endpoints) GetReservedParking(ctx context.Context) ([]Spot, error) {
-	request := getReservedParkingRequest{}
-	response, err := e.GetReservedParkingEndpoint(ctx, request)
-	if err != nil {
-		return nil, err
-	}
-	resp := response.(getReservedParkingResponse)
-	return resp.Spots, resp.Err
-}
-
 func MakeGetAllEndpoint(s Service) endpoint.Endpoint {
 	return func(ctx context.Context, request interface{}) (response interface{}, err error) {
 		//req := request.(getAllParkingRequest)
@@ -123,8 +93,8 @@ type updateParkingRequest struct {
 type SearchMetric string
 
 const (
-	COST  SearchMetric = "cost"
-	DIST  SearchMetric = "dist"
+	COST SearchMetric = "cost"
+	DIST SearchMetric = "dist"
 )
 
 type searchParkingRequest struct {
@@ -136,13 +106,6 @@ type searchParkingRequest struct {
 
 type getAllParkingRequest struct {
 }
-
-type getParkingResponse struct {
-	Err   error  `json:"err,omitempty"`
-	Spots []Spot `json:"spots"`
-}
-
-func (r getParkingResponse) error() error { return r.Err }
 
 type getAllParkingResponse struct {
 	Err   error  `json:"err,omitempty"`
@@ -158,18 +121,12 @@ type getSearchParkingResponse struct {
 
 func (r getSearchParkingResponse) error() error { return r.Err }
 
-type getFreeParkingRequest struct {
-}
-
 type getFreeParkingResponse struct {
 	Err   error  `json:"err,omitempty"`
 	Spots []Spot `json:"spots"`
 }
 
 func (r getFreeParkingResponse) error() error { return r.Err }
-
-type getReservedParkingRequest struct {
-}
 
 type getReservedParkingResponse struct {
 	Err   error  `json:"err,omitempty"`

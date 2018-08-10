@@ -1,4 +1,4 @@
-multiplsvc:
-    image: atuldaemon/multiplsvc
+rct:
+    image: atuldaemon/rct
     ports:
         - 8080:8080

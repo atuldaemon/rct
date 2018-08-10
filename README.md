@@ -56,13 +56,13 @@ curl -X GET http://localhost:8080/parking/v1/find/1
 
 # Search for a vacant spot by cost metric
 ````
-curl -d '{"lat":"33.755787", "lon":"-116.359998", "rad":"10000", "metric":"cost"}' -X GET http://localhost:8080/parking/v1/search/
+curl -d '{"lat":"33.755787", "lon":"-116.359998", "rad":"10000", "metric":"cost"}' -X POST http://localhost:8080/parking/v1/search/
 {"spots":[{"id":3,"lat":"33.755787","lon":"-116.359998","cost":"80","isReserved":false,"address":"address 3","distance":0}]}
 ````
 
 # Search for a vacant spot by distance metric
 ````
-curl -d '{"lat":"33.755787", "lon":"-116.359998", "rad":"10000", "metric":"dist"}' -X GET http://localhost:8080/parking/v1/search/
+curl -d '{"lat":"33.755787", "lon":"-116.359998", "rad":"10000", "metric":"dist"}' -X POST http://localhost:8080/parking/v1/search/
 ````
 
 
@@ -155,4 +155,4 @@ ts=2018-07-27T06:05:05.570680725Z caller=middleware.go:43 method=GetReservedPark
 ````
 
 # TODO
-User service to enable logging and booking by a user and validation etc
+User service to enable loggin and booking by a user and validation etc

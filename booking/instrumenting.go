@@ -22,6 +22,15 @@ func NewInstrumentingService(counter metrics.Counter, latency metrics.Histogram,
 	}
 }
 
+func (s *instrumentingService) GetAll(ctx context.Context) (b []Booking, err error) {
+	defer func(begin time.Time) {
+		s.requestCount.With("method", "GetAll").Add(1)
+		s.requestLatency.With("method", "GetAll").Observe(time.Since(begin).Seconds())
+	}(time.Now())
+
+	return s.Service.GetAll(ctx)
+}
+
 func (s *instrumentingService) Book(ctx context.Context, spotId string, startTime time.Time, duration time.Duration) (Booking, error) {
 	defer func(begin time.Time) {
 		s.requestCount.With("method", "Book").Add(1)

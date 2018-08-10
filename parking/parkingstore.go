@@ -173,7 +173,7 @@ func (s *InMemStore) Search(lat, lon, radius string, metric SearchMetric) ([]Ext
 		return nil, ErrInvalidReq
 	}
 
-	// Make use of the third party havesine library for computing the distance between two spots
+	// Make use of the third party haversine library for computing the distance between two spots
 	p1 := haversine.Coord{Lat: latFloat, Lon: lonFloat}
 	for _, sp := range s.m {
 		p2LatFloat, err := strconv.ParseFloat(sp.Lat, 64)
@@ -206,8 +206,6 @@ func SortSpots(ess []ExtendedSpot, metric SearchMetric) ([]ExtendedSpot, error) 
 	}
 	return ess, nil
 }
-
-
 
 // Dummy data for testing
 func createDefaultSpots() []Spot {

@@ -21,26 +21,6 @@ func MakeServerEndpoints(s Service) Endpoints {
 	}
 }
 
-func (e Endpoints) Booking(ctx context.Context) (Booking, error) {
-	request := bookingRequest{}
-	response, err := e.BookingEndpoint(ctx, request)
-	if err != nil {
-		return Booking{}, err
-	}
-	resp := response.(bookingResponse)
-	return resp.Booking, resp.Err
-}
-
-func (e Endpoints) Delete(ctx context.Context) error {
-	request := deleteRequest{}
-	response, err := e.DeleteEndpoint(ctx, request)
-	if err != nil {
-		return err
-	}
-	resp := response.(deleteResponse)
-	return resp.Err
-}
-
 func MakeGetAllEndpoint(s Service) endpoint.Endpoint {
 	return func(ctx context.Context, request interface{}) (response interface{}, err error) {
 		bb, e := s.GetAll(ctx)

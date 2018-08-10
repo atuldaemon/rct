@@ -8,9 +8,6 @@ import (
 
 	"github.com/gorilla/mux"
 
-	"bytes"
-	"io/ioutil"
-
 	"github.com/go-kit/kit/log"
 	httptransport "github.com/go-kit/kit/transport/http"
 )
@@ -47,7 +44,7 @@ func MakeHTTPHandler(s Service, logger log.Logger) http.Handler {
 		encodeResponse,
 		options...,
 	))
-	r.Methods("GET").Path("/parking/v1/search/").Handler(httptransport.NewServer(
+	r.Methods("POST").Path("/parking/v1/search/").Handler(httptransport.NewServer(
 		e.SearchParkingEndpoint,
 		decodeSearchRequest,
 		encodeResponse,
@@ -105,12 +102,6 @@ func decodeGetRequest(_ context.Context, r *http.Request) (request interface{}, 
 	return req, nil
 }
 
-func decodeGetResponse(_ context.Context, resp *http.Response) (interface{}, error) {
-	var response getParkingResponse
-	err := json.NewDecoder(resp.Body).Decode(&response)
-	return response, err
-}
-
 // errorer is implemented by all concrete response types that may contain
 // errors. It allows us to change the HTTP response code without needing to
 // trigger an endpoint (transport-level) error. For more information, read the
@@ -119,45 +110,6 @@ type errorer interface {
 	error() error
 }
 
-func encodeSearchRequest(ctx context.Context, req *http.Request, request interface{}) error {
-	req.URL.Path = "/search/"
-	return encodeRequest(ctx, req, request)
-}
-
-func encodeFindRequest(ctx context.Context, req *http.Request, request interface{}) error {
-	req.URL.Path = "/find/{id}"
-	return encodeRequest(ctx, req, request)
-}
-
-func encodeGetAllRequest(ctx context.Context, req *http.Request, request interface{}) error {
-	req.URL.Path = "/getAll/"
-	return encodeRequest(ctx, req, request)
-}
-
-func encodeGetFreeRequest(ctx context.Context, req *http.Request, request interface{}) error {
-	req.URL.Path = "/getFree/"
-	return encodeRequest(ctx, req, request)
-}
-
-func encodeGetReservedRequest(ctx context.Context, req *http.Request, request interface{}) error {
-	req.URL.Path = "/getReserved/"
-	return encodeRequest(ctx, req, request)
-}
-
-func encodeRequest(_ context.Context, req *http.Request, request interface{}) error {
-	var buf bytes.Buffer
-	err := json.NewEncoder(&buf).Encode(request)
-	if err != nil {
-		return err
-	}
-	req.Body = ioutil.NopCloser(&buf)
-	return nil
-}
-
-// encodeResponse is the common method to encode all response types to the
-// client. I chose to do it this way because, since we're using JSON, there's no
-// reason to provide anything more specific. It's certainly possible to
-// specialize on a per-response (per-method) basis.
 func encodeResponse(ctx context.Context, w http.ResponseWriter, response interface{}) error {
 	if e, ok := response.(errorer); ok && e.error() != nil {
 		// Not a Go kit transport error, but a business-logic error.
